@@ -93,13 +93,13 @@ export function ProfileScreen({ navigation }: Props) {
         <View style={styles.guestActions}>
           <AppButton
             title="Se connecter"
-            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+            onPress={() => navigation.navigate('AuthModal', { screen: 'Login' })}
             fullWidth
             size="lg"
           />
           <AppButton
             title="Créer un compte"
-            onPress={() => navigation.navigate('Auth', { screen: 'Register' })}
+            onPress={() => navigation.navigate('AuthModal', { screen: 'Register' })}
             variant="outline"
             fullWidth
             size="lg"
