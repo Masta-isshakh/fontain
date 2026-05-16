@@ -19,7 +19,7 @@ const client = generateClient<Schema>();
 
 interface Props {
   navigation: any;
-}
+}  
 
 export function AdminAssignmentsScreen({ navigation }: Props) {
   const { withLoading } = useLoading();
