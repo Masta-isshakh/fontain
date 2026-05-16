@@ -1,0 +1,35 @@
+  
+Amplify Sandbox
+
+  Identifier: 	rodeo
+  Stack: 	amplify-fontain-rodeo-sandbox-149ddb0def
+  Region: 	ap-south-1
+  
+To specify a different sandbox identifier, use --identifier
+
+6:00:38 AM [Sandbox] Executing command `deploy`
+6:00:41 AM [amplify: SYNTH_STARTED] 6:00:41 AM Backend synthesis started 
+6:00:41 AM [synth: CDK_TOOLKIT_I1001] Starting Synthesis ...
+6:00:41 AM [assembly: undefined] context: {
+  'amplify-backend-namespace': 'fontain',
+  'amplify-backend-name': 'rodeo',
+  'amplify-backend-type': 'sandbox',
+  'aws:cdk:enable-path-metadata': true,
+  'aws:cdk:enable-asset-metadata': true,
+  'aws:cdk:version-reporting': true,
+  'aws:cdk:bundling-stacks': [ '**' ]
+}
+6:00:41 AM [assembly: CDK_ASSEMBLY_I0010] Setting "CDK_DEFAULT_REGION" environment variable to ap-south-1
+6:00:42 AM AWS SDK Call SSOClient: GetRoleCredentialsCommand
+6:00:42 AM [assembly: undefined] Looking up default account ID from STS
+6:00:42 AM AWS SDK Call STSClient: GetCallerIdentityCommand
+6:00:42 AM [assembly: undefined] Default account ID: 329599619714
+6:00:42 AM [assembly: CDK_ASSEMBLY_I0010] Setting "CDK_DEFAULT_ACCOUNT" environment variable to 329599619714
+6:00:42 AM [assembly: CDK_ASSEMBLY_I0010] outdir: C:\Users\rodeo\Desktop\Fontain\fontain\.amplify\artifacts\cdk.out
+6:00:42 AM [assembly: CDK_ASSEMBLY_I0010] env: {
+  CDK_DEFAULT_REGION: 'ap-south-1',
+  CDK_DEFAULT_ACCOUNT: '329599619714',
+  CDK_OUTDIR: 'C:\\Users\\rodeo\\Desktop\\Fontain\\fontain\\.amplify\\artifacts\\cdk.out',
+  CDK_CLI_ASM_VERSION: '53.0.0',
+  CDK_CLI_VERSION: '1.16.0'
+}
