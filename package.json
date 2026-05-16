@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "build:web": "expo export --platform web --output-dir dist",
     "sandbox": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1",
-    "sandbox:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Debug"
+    "sandbox:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Debug",
+    "sandbox:once": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Once",
+    "sandbox:once:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Once -Debug"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
