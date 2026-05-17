@@ -20,91 +20,67 @@ interface Props {
   navigation: any;
 }
 
-  const [submitError, setSubmitError] = useState('');
 export function RegisterScreen({ navigation }: Props) {
   const { withLoading } = useLoading();
   const { login } = useAuth();
   const [step, setStep] = useState<'form' | 'verify'>('form');
 
-  // Form fields
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Verify step
   const [code, setCode] = useState('');
-    setSubmitError('');
-
   const [errors, setErrors] = useState<Record<string, string>>({});
-        const normalizedEmail = email.toLowerCase().trim();
+  const [submitError, setSubmitError] = useState('');
 
-        const signUpWithFullName = () =>
-          signUp({
-            username: normalizedEmail,
-            password,
-            options: {
-              userAttributes: {
-                email: normalizedEmail,
-                fullname: fullName.trim(),
-              },
-            },
-          });
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!fullName.trim()) newErrors.fullName = 'Le nom complet est requis';
+    if (!email.trim() || !email.includes('@')) newErrors.email = 'Email invalide';
+    if (password.length < 8) newErrors.password = 'Le mot de passe doit comporter au moins 8 caracteres';
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-        const signUpWithName = () =>
-          signUp({
-            username: normalizedEmail,
-            password,
-            options: {
-              userAttributes: {
-                email: normalizedEmail,
-                name: fullName.trim(),
-              },
-            },
-          });
-
-        let result;
-        try {
-          result = await signUpWithFullName();
-        } catch (signUpErr: any) {
-          const fallbackMessage = String(signUpErr?.message ?? '');
-          const shouldRetryWithoutFullName =
-            fallbackMessage.toLowerCase().includes('fullname') ||
-            fallbackMessage.toLowerCase().includes('userattributes') ||
-            fallbackMessage.toLowerCase().includes('invalidparameterexception');
-
-          if (!shouldRetryWithoutFullName) {
-            throw signUpErr;
-          }
-
-          result = await signUpWithName();
-        }
+  const doSignUp = async (normalizedEmail: string): Promise<ReturnType<typeof signUp>> => {
+    try {
+      return await signUp({
+        username: normalizedEmail,
+        password,
+        options: { userAttributes: { email: normalizedEmail, fullname: fullName.trim() } },
+      });
+    } catch (err: any) {
+      const msg = String(err?.message ?? '').toLowerCase();
+      const isAttrError =
+        msg.includes('fullname') ||
+        msg.includes('userattributes') ||
+        msg.includes('invalidparameterexception');
+      if (!isAttrError) throw err;
+      return await signUp({
+        username: normalizedEmail,
+        password,
+        options: { userAttributes: { email: normalizedEmail, name: fullName.trim() } },
+      });
+    }
+  };
 
   const handleRegister = async () => {
     if (!validate()) return;
+    setSubmitError('');
     await withLoading(async () => {
       try {
-        const result = await signUp({
-          username: email.toLowerCase().trim(),
-          password,
-          options: {
-        setSubmitError(details);
-            userAttributes: {
-              email: email.toLowerCase().trim(),
-              fullname: fullName.trim(),
-            },
-          },
-        });
+        const normalizedEmail = email.toLowerCase().trim();
+        const result = await doSignUp(normalizedEmail);
 
         if (result.isSignUpComplete) {
-          await login(email.toLowerCase().trim(), password);
+          await login(normalizedEmail, password);
           return;
         }
 
         if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
           setStep('verify');
           return;
-    setSubmitError('');
         }
 
         Alert.alert(
@@ -112,24 +88,24 @@ export function RegisterScreen({ navigation }: Props) {
           'Veuillez terminer la verification de votre compte puis vous connecter.'
         );
       } catch (err: any) {
-        const msg = err?.message ?? 'Erreur lors de l\'inscription';
-        setSubmitError(err?.message ?? 'Le code est incorrect ou a expiré');
+        const msg = err?.message ?? "Erreur lors de l'inscription";
         const details = err?.name ? `${err.name}: ${msg}` : msg;
+        setSubmitError(details);
         if (msg.includes('already exists') || msg.includes('UsernameExistsException')) {
-          Alert.alert('Compte existant', 'Un compte avec cet email existe déjà. Veuillez vous connecter.');
+          Alert.alert('Compte existant', 'Un compte avec cet email existe deja. Veuillez vous connecter.');
         } else {
           Alert.alert('Erreur', details);
         }
       }
-    }, 'Création du compte...');
+    }, 'Creation du compte...');
   };
 
   const handleVerify = async () => {
     if (!code.trim()) {
-      Alert.alert('Erreur', 'Saisissez le code de vérification');
+      Alert.alert('Erreur', 'Saisissez le code de verification');
       return;
     }
-
+    setSubmitError('');
     await withLoading(async () => {
       try {
         await confirmSignUp({
@@ -138,44 +114,43 @@ export function RegisterScreen({ navigation }: Props) {
         });
         await login(email.toLowerCase().trim(), password);
       } catch (err: any) {
-        Alert.alert('Code invalide', err?.message ?? 'Le code est incorrect ou a expiré');
+        const msg = err?.message ?? 'Le code est incorrect ou a expire';
+        setSubmitError(msg);
+        Alert.alert('Code invalide', msg);
       }
-    }, 'Vérification...');
+    }, 'Verification...');
   };
 
   const handleResend = async () => {
     await withLoading(async () => {
       try {
         await resendSignUpCode({ username: email.toLowerCase().trim() });
-        Alert.alert('Code envoyé', 'Un nouveau code a été envoyé à votre adresse email.');
+        Alert.alert('Code envoye', 'Un nouveau code a ete envoye a votre adresse email.');
       } catch (err: any) {
-        Alert.alert('Erreur', err?.message ?? 'Impossible d\'envoyer le code');
+        Alert.alert('Erreur', err?.message ?? "Impossible d'envoyer le code");
       }
     }, 'Envoi...');
   };
 
   if (step === 'verify') {
     return (
-
-          {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          {/* Icon */}
           <View style={styles.iconWrap}>
             <Ionicons name="mail-open-outline" size={48} color={Colors.primary} />
           </View>
 
-          <Text style={styles.title}>Vérifiez votre email</Text>
+          <Text style={styles.title}>Verifiez votre email</Text>
           <Text style={styles.subtitle}>
-            Un code de vérification a été envoyé à{' '}
+            Un code de verification a ete envoye a{' '}
             <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
 
           <AppInput
-            label="Code de vérification"
+            label="Code de verification"
             value={code}
             onChangeText={setCode}
             placeholder="123456"
@@ -183,21 +158,23 @@ export function RegisterScreen({ navigation }: Props) {
             leftIcon="key-outline"
           />
 
+          {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
+
           <AppButton
-            title="Vérifier mon compte"
+            title="Verifier mon compte"
             onPress={handleVerify}
             variant="primary"
             fullWidth
           />
 
           <TouchableOpacity style={styles.resendRow} onPress={handleResend}>
-            <Text style={styles.resendText}>Vous n'avez pas reçu le code?</Text>
+            <Text style={styles.resendText}>Vous n avez pas recu le code?</Text>
             <Text style={styles.resendLink}> Renvoyer</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.backRow} onPress={() => setStep('form')}>
             <Ionicons name="arrow-back" size={16} color={Colors.textSecondary} />
-            <Text style={styles.backText}>Modifier l'email</Text>
+            <Text style={styles.backText}>Modifier l email</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -210,17 +187,15 @@ export function RegisterScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoWrap}>
             <Ionicons name="water" size={36} color={Colors.primary} />
           </View>
           <Text style={styles.brand}>Fontain</Text>
-          <Text style={styles.title}>Créer un compte</Text>
-          <Text style={styles.subtitle}>Rejoignez la communauté des freelancers Fontain</Text>
+          <Text style={styles.title}>Creer un compte</Text>
+          <Text style={styles.subtitle}>Rejoignez la communaute des freelancers Fontain</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <AppInput
             label="Nom complet"
@@ -245,10 +220,8 @@ export function RegisterScreen({ navigation }: Props) {
           <AppInput
             label="Mot de passe"
             value={password}
-
-        {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
             onChangeText={setPassword}
-            placeholder="8 caractères minimum"
+            placeholder="8 caracteres minimum"
             leftIcon="lock-closed-outline"
             error={errors.password}
             secureTextEntry
@@ -257,7 +230,7 @@ export function RegisterScreen({ navigation }: Props) {
             label="Confirmer le mot de passe"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholder="Répétez le mot de passe"
+            placeholder="Repetez le mot de passe"
             leftIcon="lock-closed-outline"
             error={errors.confirmPassword}
             secureTextEntry
@@ -265,15 +238,17 @@ export function RegisterScreen({ navigation }: Props) {
         </View>
 
         <AppButton
-          title="Créer mon compte"
+          title="Creer mon compte"
           onPress={handleRegister}
           variant="primary"
           fullWidth
           size="lg"
         />
 
+        {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
+
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Vous avez déjà un compte?</Text>
+          <Text style={styles.footerText}>Vous avez deja un compte?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text style={styles.footerLink}>Se connecter</Text>
           </TouchableOpacity>
@@ -335,12 +310,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: FontWeight.semibold,
     color: Colors.primary,
+  },
   submitError: {
     color: Colors.danger,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
     textAlign: 'left',
-  },
   },
   iconWrap: {
     width: 80,
