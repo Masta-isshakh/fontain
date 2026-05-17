@@ -48,7 +48,7 @@ export function RegisterScreen({ navigation }: Props) {
     if (!validate()) return;
     await withLoading(async () => {
       try {
-        await signUp({
+        const result = await signUp({
           username: email.toLowerCase().trim(),
           password,
           options: {
@@ -58,7 +58,25 @@ export function RegisterScreen({ navigation }: Props) {
             },
           },
         });
-        setStep('verify');
+
+        if (result.isSignUpComplete) {
+          Alert.alert(
+            'Compte cree',
+            'Votre compte a ete cree. Vous pouvez maintenant vous connecter.',
+            [{ text: 'Se connecter', onPress: () => navigation.replace('Login') }]
+          );
+          return;
+        }
+
+        if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
+          setStep('verify');
+          return;
+        }
+
+        Alert.alert(
+          'Verification requise',
+          'Veuillez terminer la verification de votre compte puis vous connecter.'
+        );
       } catch (err: any) {
         const msg = err?.message ?? 'Erreur lors de l\'inscription';
         if (msg.includes('already exists') || msg.includes('UsernameExistsException')) {
@@ -75,6 +93,7 @@ export function RegisterScreen({ navigation }: Props) {
       Alert.alert('Erreur', 'Saisissez le code de vérification');
       return;
     }
+
     await withLoading(async () => {
       try {
         await confirmSignUp({

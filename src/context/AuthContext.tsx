@@ -81,7 +81,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       await withLoading(async () => {
-        await signIn({ username: email, password });
+        const result = await signIn({ username: email, password });
+        if (!result.isSignedIn) {
+          if (result.nextStep?.signInStep === 'CONFIRM_SIGN_UP') {
+            throw new Error('Votre compte n\'est pas encore confirme. Verifiez votre email et confirmez votre inscription avant de vous connecter.');
+          }
+          throw new Error('Connexion incomplete. Veuillez terminer les etapes de verification puis reessayer.');
+        }
         await loadUser();
       }, 'Connexion en cours...');
     },

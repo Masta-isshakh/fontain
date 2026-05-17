@@ -38,6 +38,19 @@ const LEVEL_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function ProfileScreen({ navigation }: Props) {
+    const openAuth = (screen: 'Login' | 'Register') => {
+      let currentNav: any = navigation;
+      while (currentNav) {
+        const state = currentNav.getState?.();
+        const hasAuthModal = state?.routeNames?.includes?.('AuthModal');
+        if (hasAuthModal) {
+          currentNav.navigate('AuthModal', { screen });
+          return;
+        }
+        currentNav = currentNav.getParent?.();
+      }
+    };
+
   const { user, logout, isAdmin, isFreelancer } = useAuth();
   const [performance, setPerformance] = useState<any>(null);
   const [recentAssignments, setRecentAssignments] = useState<any[]>([]);
@@ -93,13 +106,13 @@ export function ProfileScreen({ navigation }: Props) {
         <View style={styles.guestActions}>
           <AppButton
             title="Se connecter"
-            onPress={() => navigation.navigate('AuthModal', { screen: 'Login' })}
+            onPress={() => openAuth('Login')}
             fullWidth
             size="lg"
           />
           <AppButton
             title="Créer un compte"
-            onPress={() => navigation.navigate('AuthModal', { screen: 'Register' })}
+            onPress={() => openAuth('Register')}
             variant="outline"
             fullWidth
             size="lg"
