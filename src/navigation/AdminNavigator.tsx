@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FontWeight } from '../theme';
+import { HeaderLogoutButton } from '../components';
 
 // Admin screens
 import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
@@ -22,6 +23,7 @@ export function AdminNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerTitleStyle: { fontWeight: FontWeight.bold as any },
+        headerRight: () => <HeaderLogoutButton />,
       }}
     >
       <Stack.Screen

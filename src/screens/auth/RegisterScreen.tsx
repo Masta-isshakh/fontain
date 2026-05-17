@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 import { AppButton, AppInput } from '../../components';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 import { useLoading } from '../../context/LoadingContext';
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 
 export function RegisterScreen({ navigation }: Props) {
   const { withLoading } = useLoading();
+  const { login } = useAuth();
   const [step, setStep] = useState<'form' | 'verify'>('form');
 
   // Form fields
@@ -60,11 +62,7 @@ export function RegisterScreen({ navigation }: Props) {
         });
 
         if (result.isSignUpComplete) {
-          Alert.alert(
-            'Compte cree',
-            'Votre compte a ete cree. Vous pouvez maintenant vous connecter.',
-            [{ text: 'Se connecter', onPress: () => navigation.replace('Login') }]
-          );
+          await login(email.toLowerCase().trim(), password);
           return;
         }
 
@@ -101,11 +99,7 @@ export function RegisterScreen({ navigation }: Props) {
           username: email.toLowerCase().trim(),
           confirmationCode: code.trim(),
         });
-        Alert.alert(
-          'Compte créé',
-          'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.',
-          [{ text: 'Se connecter', onPress: () => navigation.replace('Login') }]
-        );
+        await login(email.toLowerCase().trim(), password);
       } catch (err: any) {
         Alert.alert('Code invalide', err?.message ?? 'Le code est incorrect ou a expiré');
       }

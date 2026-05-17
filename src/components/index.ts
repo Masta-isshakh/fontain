@@ -6,3 +6,4 @@ export { ProjectCard } from './ProjectCard';
 export { LoadingScreen } from './LoadingScreen';
 export { EmptyState } from './EmptyState';
 export { ConfirmDialog } from './ConfirmDialog';
+export { HeaderLogoutButton } from './HeaderLogoutButton';

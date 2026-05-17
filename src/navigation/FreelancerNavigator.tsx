@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSize, FontWeight } from '../theme';
+import { HeaderLogoutButton } from '../components';
 
 // Public / shared screens
 import { HomeScreen } from '../screens/public/HomeScreen';
@@ -25,12 +26,16 @@ const Stack = createNativeStackNavigator();
 
 const TAB_ACTIVE = Colors.primary;
 const TAB_INACTIVE = Colors.gray400;
+const stackScreenOptions = {
+  headerTitleStyle: { fontWeight: FontWeight.bold as any },
+  headerRight: () => <HeaderLogoutButton />,
+};
 
 // --- Nested Stack Navigators for each tab ---
 
 function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerTitleStyle: { fontWeight: FontWeight.bold as any } }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="HomeMain" component={HomeScreen} options={{ title: 'Accueil' }} />
     </Stack.Navigator>
   );
@@ -38,7 +43,7 @@ function HomeStack() {
 
 function CoursesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerTitleStyle: { fontWeight: FontWeight.bold as any } }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="CoursesList" component={CoursesScreen} options={{ title: 'Formations' }} />
       <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} options={{ title: 'Playlist' }} />
       <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} options={{ title: 'Vidéo', headerShown: false }} />
@@ -48,7 +53,7 @@ function CoursesStack() {
 
 function ProjectsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerTitleStyle: { fontWeight: FontWeight.bold as any } }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="ProjectsList" component={ProjectsScreen} options={{ title: 'Projets' }} />
       <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} options={{ title: 'Projet' }} />
     </Stack.Navigator>
@@ -57,7 +62,7 @@ function ProjectsStack() {
 
 function ProfileStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerTitleStyle: { fontWeight: FontWeight.bold as any } }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="ProfileMain" component={ProfileScreen} options={{ title: 'Profil' }} />
       <Stack.Screen name="MyProjects" component={MyProjectsScreen} options={{ title: 'Mes projets' }} />
       <Stack.Screen name="MyExams" component={MyExamsScreen} options={{ title: 'Mes examens' }} />
