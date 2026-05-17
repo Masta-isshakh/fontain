@@ -20,6 +20,7 @@ interface Props {
   navigation: any;
 }
 
+  const [submitError, setSubmitError] = useState('');
 export function RegisterScreen({ navigation }: Props) {
   const { withLoading } = useLoading();
   const { login } = useAuth();
@@ -33,18 +34,51 @@ export function RegisterScreen({ navigation }: Props) {
 
   // Verify step
   const [code, setCode] = useState('');
+    setSubmitError('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+        const normalizedEmail = email.toLowerCase().trim();
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!fullName.trim()) newErrors.fullName = 'Le nom complet est requis';
-    if (!email.trim() || !email.includes('@')) newErrors.email = 'Email invalide';
-    if (password.length < 8) newErrors.password = 'Le mot de passe doit comporter au moins 8 caractères';
-    if (password !== confirmPassword) newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+        const signUpWithFullName = () =>
+          signUp({
+            username: normalizedEmail,
+            password,
+            options: {
+              userAttributes: {
+                email: normalizedEmail,
+                fullname: fullName.trim(),
+              },
+            },
+          });
+
+        const signUpWithName = () =>
+          signUp({
+            username: normalizedEmail,
+            password,
+            options: {
+              userAttributes: {
+                email: normalizedEmail,
+                name: fullName.trim(),
+              },
+            },
+          });
+
+        let result;
+        try {
+          result = await signUpWithFullName();
+        } catch (signUpErr: any) {
+          const fallbackMessage = String(signUpErr?.message ?? '');
+          const shouldRetryWithoutFullName =
+            fallbackMessage.toLowerCase().includes('fullname') ||
+            fallbackMessage.toLowerCase().includes('userattributes') ||
+            fallbackMessage.toLowerCase().includes('invalidparameterexception');
+
+          if (!shouldRetryWithoutFullName) {
+            throw signUpErr;
+          }
+
+          result = await signUpWithName();
+        }
 
   const handleRegister = async () => {
     if (!validate()) return;
@@ -54,6 +88,7 @@ export function RegisterScreen({ navigation }: Props) {
           username: email.toLowerCase().trim(),
           password,
           options: {
+        setSubmitError(details);
             userAttributes: {
               email: email.toLowerCase().trim(),
               fullname: fullName.trim(),
@@ -69,6 +104,7 @@ export function RegisterScreen({ navigation }: Props) {
         if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
           setStep('verify');
           return;
+    setSubmitError('');
         }
 
         Alert.alert(
@@ -77,6 +113,7 @@ export function RegisterScreen({ navigation }: Props) {
         );
       } catch (err: any) {
         const msg = err?.message ?? 'Erreur lors de l\'inscription';
+        setSubmitError(err?.message ?? 'Le code est incorrect ou a expiré');
         const details = err?.name ? `${err.name}: ${msg}` : msg;
         if (msg.includes('already exists') || msg.includes('UsernameExistsException')) {
           Alert.alert('Compte existant', 'Un compte avec cet email existe déjà. Veuillez vous connecter.');
@@ -119,6 +156,8 @@ export function RegisterScreen({ navigation }: Props) {
 
   if (step === 'verify') {
     return (
+
+          {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -206,6 +245,8 @@ export function RegisterScreen({ navigation }: Props) {
           <AppInput
             label="Mot de passe"
             value={password}
+
+        {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
             onChangeText={setPassword}
             placeholder="8 caractères minimum"
             leftIcon="lock-closed-outline"
@@ -294,6 +335,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: FontWeight.semibold,
     color: Colors.primary,
+  submitError: {
+    color: Colors.danger,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    textAlign: 'left',
+  },
   },
   iconWrap: {
     width: 80,

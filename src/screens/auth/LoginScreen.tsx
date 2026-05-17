@@ -24,6 +24,7 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validate = () => {
@@ -46,11 +47,13 @@ export function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     if (!validate()) return;
+    setSubmitError('');
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
     } catch (err: any) {
       const msg = err?.message ?? 'Une erreur est survenue. Veuillez réessayer.';
+      setSubmitError(msg);
       Alert.alert('Erreur de connexion', msg);
     } finally {
       setLoading(false);
@@ -113,6 +116,10 @@ export function LoginScreen({ navigation }: Props) {
             >
               <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
             </TouchableOpacity>
+
+            {submitError ? (
+              <Text style={styles.submitError}>{submitError}</Text>
+            ) : null}
 
             <AppButton
               title="Se connecter"
@@ -203,6 +210,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.primary,
     fontWeight: FontWeight.semibold,
+  },
+  submitError: {
+    fontSize: FontSize.sm,
+    color: Colors.danger,
+    fontWeight: FontWeight.medium,
   },
   footer: {
     flexDirection: 'row',
