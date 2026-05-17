@@ -11,7 +11,8 @@
     "sandbox": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1",
     "sandbox:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Debug",
     "sandbox:once": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Once",
-    "sandbox:once:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Once -Debug"
+    "sandbox:once:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sandbox-start.ps1 -Once -Debug",
+    "postinstall": "node scripts/patch-amplify-windows.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
