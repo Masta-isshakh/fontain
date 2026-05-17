@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         userId: cognitoUser.userId,
         email: attrs.email ?? '',
-        fullName: attrs.name ?? attrs.email ?? '',
+        fullName: attrs.fullname ?? attrs.name ?? attrs.email ?? '',
         role,
         groups,
       });

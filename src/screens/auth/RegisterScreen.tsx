@@ -54,7 +54,7 @@ export function RegisterScreen({ navigation }: Props) {
           options: {
             userAttributes: {
               email: email.toLowerCase().trim(),
-              name: fullName.trim(),
+              fullname: fullName.trim(),
             },
           },
         });
@@ -79,10 +79,11 @@ export function RegisterScreen({ navigation }: Props) {
         );
       } catch (err: any) {
         const msg = err?.message ?? 'Erreur lors de l\'inscription';
+        const details = err?.name ? `${err.name}: ${msg}` : msg;
         if (msg.includes('already exists') || msg.includes('UsernameExistsException')) {
           Alert.alert('Compte existant', 'Un compte avec cet email existe déjà. Veuillez vous connecter.');
         } else {
-          Alert.alert('Erreur', msg);
+          Alert.alert('Erreur', details);
         }
       }
     }, 'Création du compte...');
