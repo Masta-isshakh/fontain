@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { Hub } from 'aws-amplify/utils';
 import {
   signIn,
   signOut,
@@ -41,6 +42,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+type AuthFlowCode = 'RESET_PASSWORD' | 'CONFIRM_SIGN_UP' | 'NEW_PASSWORD_REQUIRED';
+
+export interface AuthFlowError extends Error {
+  code: AuthFlowCode;
+  email: string;
+}
+
+function createAuthFlowError(code: AuthFlowCode, email: string, message: string): AuthFlowError {
+  const error = new Error(message) as AuthFlowError;
+  error.code = code;
+  error.email = email;
+  return error;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,8 +64,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUser = useCallback(async () => {
     try {
       const cognitoUser = await getCurrentUser();
-      const attrs = await fetchUserAttributes();
-      const session = await fetchAuthSession();
+      const session = await fetchAuthSession({ forceRefresh: true });
+      let attrs: Partial<Record<string, string>> = {};
+
+      try {
+        attrs = await fetchUserAttributes();
+      } catch {
+        attrs = {};
+      }
+
       const groups =
         (session.tokens?.accessToken?.payload['cognito:groups'] as string[]) ?? [];
 
@@ -62,33 +84,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser({
         userId: cognitoUser.userId,
-        email: attrs.email ?? '',
-        fullName: attrs.fullname ?? attrs.name ?? attrs.email ?? '',
+        email: attrs.email ?? cognitoUser.signInDetails?.loginId ?? '',
+        fullName: attrs.fullname ?? attrs.name ?? attrs.email ?? cognitoUser.signInDetails?.loginId ?? '',
         role,
         groups,
       });
+      return true;
     } catch {
       setUser(null);
+      return false;
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadUser();
+    void loadUser();
+
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      const event = payload.event;
+
+      if (event === 'signedOut') {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'signedIn' || event === 'tokenRefresh') {
+        void loadUser();
+      }
+    });
+
+    return unsubscribe;
   }, [loadUser]);
 
   const login = useCallback(
     async (email: string, password: string) => {
       await withLoading(async () => {
-        const result = await signIn({ username: email, password });
-        if (!result.isSignedIn) {
-          if (result.nextStep?.signInStep === 'CONFIRM_SIGN_UP') {
-            throw new Error('Votre compte n\'est pas encore confirme. Verifiez votre email et confirmez votre inscription avant de vous connecter.');
+        try {
+          const result = await signIn({ username: email, password });
+          const signInStep = result.nextStep?.signInStep;
+
+          if (result.isSignedIn || signInStep === 'DONE') {
+            const hasUser = await loadUser();
+            if (!hasUser) {
+              throw new Error('Connexion reussie, mais le profil n\'a pas pu etre charge. Rechargez la page si le probleme persiste.');
+            }
+            return;
           }
+
+          if (signInStep === 'RESET_PASSWORD') {
+            throw createAuthFlowError(
+              'RESET_PASSWORD',
+              email,
+              'Votre mot de passe doit etre reinitialise avant de continuer.'
+            );
+          }
+
+          if (signInStep === 'CONFIRM_SIGN_UP') {
+            throw createAuthFlowError(
+              'CONFIRM_SIGN_UP',
+              email,
+              'Votre compte n\'est pas encore confirme. Verifiez votre email et terminez l\'inscription.'
+            );
+          }
+
+          if (signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+            throw createAuthFlowError(
+              'NEW_PASSWORD_REQUIRED',
+              email,
+              'Un nouveau mot de passe est requis avant de continuer.'
+            );
+          }
+
           throw new Error('Connexion incomplete. Veuillez terminer les etapes de verification puis reessayer.');
+        } catch (err: any) {
+          const msg = String(err?.message ?? '').toLowerCase();
+          const isAlreadySignedIn =
+            msg.includes('already a signed-in user') ||
+            msg.includes('already signed in') ||
+            err?.name === 'UserAlreadyAuthenticatedException';
+
+          if (isAlreadySignedIn) {
+            const hasUser = await loadUser();
+            if (hasUser) {
+              return;
+            }
+          }
+
+          throw err;
         }
-        await loadUser();
       }, 'Connexion en cours...');
     },
     [withLoading, loadUser]
@@ -96,8 +181,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await withLoading(async () => {
-      await signOut();
-      setUser(null);
+      try {
+        await signOut();
+      } catch (err: any) {
+        const msg = String(err?.message ?? '').toLowerCase();
+        const isAlreadySignedOut =
+          msg.includes('no current user') ||
+          msg.includes('not authenticated') ||
+          msg.includes('no user is currently signed in');
+
+        if (!isAlreadySignedOut) {
+          throw err;
+        }
+      } finally {
+        setUser(null);
+      }
     }, 'Déconnexion...');
   }, [withLoading]);
 

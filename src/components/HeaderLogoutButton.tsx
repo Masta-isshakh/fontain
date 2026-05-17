@@ -14,7 +14,15 @@ export function HeaderLogoutButton() {
   const handleLogout = () => {
     Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter?', [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Déconnexion', style: 'destructive', onPress: () => void logout() },
+      {
+        text: 'Déconnexion',
+        style: 'destructive',
+        onPress: () => {
+          void logout().catch((err: any) => {
+            Alert.alert('Erreur', err?.message ?? 'La deconnexion a echoue.');
+          });
+        },
+      },
     ]);
   };
 

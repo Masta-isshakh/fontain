@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,15 +16,50 @@ import { Colors, FontSize, FontWeight, Spacing, BorderRadius } from '../../theme
 
 interface Props {
   navigation: any;
+  route?: {
+    params?: {
+      email?: string;
+      autoRequest?: boolean;
+      reason?: 'reset-password-required' | 'new-password-required';
+    };
+  };
 }
 
-export function ForgotPasswordScreen({ navigation }: Props) {
+export function ForgotPasswordScreen({ navigation, route }: Props) {
   const { forgotPassword, confirmForgotPassword } = useAuth();
-  const [step, setStep] = useState<'request' | 'confirm'>('request');
-  const [email, setEmail] = useState('');
+  const initialEmail = route?.params?.email?.trim().toLowerCase() ?? '';
+  const shouldAutoRequest = route?.params?.autoRequest === true;
+  const flowReason = route?.params?.reason;
+  const [step, setStep] = useState<'request' | 'confirm'>(shouldAutoRequest ? 'confirm' : 'request');
+  const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const hasAutoRequested = useRef(false);
+
+  useEffect(() => {
+    if (!shouldAutoRequest || !initialEmail || hasAutoRequested.current) {
+      return;
+    }
+
+    hasAutoRequested.current = true;
+    setLoading(true);
+
+    void forgotPassword(initialEmail)
+      .then(() => {
+        setStep('confirm');
+        Alert.alert(
+          'Code envoye',
+          'Un code de verification a ete envoye a votre adresse email pour finaliser la reinitialisation du mot de passe.'
+        );
+      })
+      .catch((err: any) => {
+        Alert.alert('Erreur', err?.message ?? 'Une erreur est survenue');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [forgotPassword, initialEmail, shouldAutoRequest]);
 
   const handleRequest = async () => {
     if (!email.trim()) {
@@ -91,6 +126,8 @@ export function ForgotPasswordScreen({ navigation }: Props) {
         <Text style={styles.subtitle}>
           {step === 'request'
             ? 'Entrez votre email pour recevoir un code de vÃ©rification.'
+            : flowReason === 'new-password-required'
+            ? `Ce compte doit definir un nouveau mot de passe. Entrez le code recu a ${email} puis choisissez votre nouveau mot de passe.`
             : `Entrez le code reÃ§u Ã  ${email} et votre nouveau mot de passe.`}
         </Text>
 

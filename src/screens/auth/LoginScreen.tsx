@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
+import { AuthFlowError, useAuth } from '../../context/AuthContext';
 import { AppButton, AppInput } from '../../components';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius } from '../../theme';
 
@@ -53,6 +53,29 @@ export function LoginScreen({ navigation }: Props) {
       await login(email.trim().toLowerCase(), password);
     } catch (err: any) {
       const msg = err?.message ?? 'Une erreur est survenue. Veuillez réessayer.';
+
+      if ((err as AuthFlowError)?.code === 'RESET_PASSWORD') {
+        navigation.navigate('ForgotPassword', {
+          email: email.trim().toLowerCase(),
+          autoRequest: true,
+          reason: 'reset-password-required',
+        });
+        return;
+      }
+
+      if ((err as AuthFlowError)?.code === 'NEW_PASSWORD_REQUIRED') {
+        navigation.navigate('ForgotPassword', {
+          email: email.trim().toLowerCase(),
+          autoRequest: true,
+          reason: 'new-password-required',
+        });
+        return;
+      }
+
+      if ((err as AuthFlowError)?.code === 'CONFIRM_SIGN_UP') {
+        navigation.navigate('Register');
+      }
+
       setSubmitError(msg);
       Alert.alert('Erreur de connexion', msg);
     } finally {
