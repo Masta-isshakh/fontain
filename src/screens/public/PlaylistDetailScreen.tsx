@@ -82,6 +82,18 @@ export function PlaylistDetailScreen({ route, navigation }: Props) {
 
   const onRefresh = () => { setRefreshing(true); load(); };
 
+  const openLogin = () => {
+    let currentNav: any = navigation;
+    while (currentNav) {
+      const state = currentNav.getState?.();
+      if (state?.routeNames?.includes?.('AuthModal')) {
+        currentNav.navigate('AuthModal', { screen: 'Login' });
+        return;
+      }
+      currentNav = currentNav.getParent?.();
+    }
+  };
+
   const canWatch = (video: any) => {
     if (video.visibility === 'PUBLIC') return true;
     return user?.role === 'FREELANCER' || user?.role === 'ADMIN';
@@ -136,7 +148,7 @@ export function PlaylistDetailScreen({ route, navigation }: Props) {
               style={[styles.videoItem, !watchable && styles.videoItemLocked]}
               onPress={() => {
                 if (!watchable) {
-                  navigation.navigate('Auth', { screen: 'Login' });
+                  openLogin();
                   return;
                 }
                 navigation.navigate('VideoPlayer', { videoId: item.id, videoStorageKey: item.videoStorageKey, title: item.title });

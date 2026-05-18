@@ -29,7 +29,6 @@ export function RootNavigator() {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="FreelancerRoot" component={FreelancerNavigator} />
-        <Stack.Screen name="AuthModal" component={AuthNavigator} />
       </Stack.Navigator>
     );
   }

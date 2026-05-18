@@ -1,9 +1,9 @@
 {
   "auth": {
-    "user_pool_id": "ap-south-1_POXNtLuXb",
+    "user_pool_id": "ap-south-1_1SMUxtyXG",
     "aws_region": "ap-south-1",
-    "user_pool_client_id": "tkmnnjb5nc0h7qll17nn9pqhq",
-    "identity_pool_id": "ap-south-1:2a481a91-43d5-4eeb-90db-43218bf3ebe2",
+    "user_pool_client_id": "4bbrmkql9b3ao01fqncr356rvo",
+    "identity_pool_id": "ap-south-1:e8532116-2f46-4698-8996-843633369789",
     "mfa_methods": [],
     "standard_required_attributes": [
       "email"
@@ -37,9 +37,9 @@
     "unauthenticated_identities_enabled": true
   },
   "data": {
-    "url": "https://47ymnrdvbjcu3lwh6d5qpryxxa.appsync-api.ap-south-1.amazonaws.com/graphql",
+    "url": "https://kusi6tz5zbbr7myq6vfdsgs2ti.appsync-api.ap-south-1.amazonaws.com/graphql",
     "aws_region": "ap-south-1",
-    "api_key": "da2-afiggdwg75gwhebnc4dqrqtyty",
+    "api_key": "da2-vxdxqgwqjrdwbmt26hifyyesay",
     "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
     "authorization_types": [
       "API_KEY",
@@ -2681,11 +2681,11 @@
   },
   "storage": {
     "aws_region": "ap-south-1",
-    "bucket_name": "amplify-fontain-rodeo-san-fontainstoragebucketf845-pbpkxe3lpd1c",
+    "bucket_name": "amplify-fontain-musta-san-fontainstoragebucketf845-i45gvbwilidn",
     "buckets": [
       {
         "name": "fontainStorage",
-        "bucket_name": "amplify-fontain-rodeo-san-fontainstoragebucketf845-pbpkxe3lpd1c",
+        "bucket_name": "amplify-fontain-musta-san-fontainstoragebucketf845-i45gvbwilidn",
         "aws_region": "ap-south-1",
         "paths": {
           "home-images/*": {

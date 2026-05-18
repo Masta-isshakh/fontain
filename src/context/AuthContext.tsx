@@ -49,6 +49,24 @@ export interface AuthFlowError extends Error {
   email: string;
 }
 
+function normalizeGroups(groups: unknown): string[] {
+  if (Array.isArray(groups)) {
+    return groups.filter((group): group is string => typeof group === 'string');
+  }
+  if (typeof groups === 'string' && groups.trim()) {
+    return [groups];
+  }
+  return [];
+}
+
+function resolveRole(groups: string[]): UserRole {
+  const normalized = groups.map((group) => group.toLowerCase());
+  if (normalized.some((group) => group === 'admin' || group.includes('admin'))) {
+    return 'ADMIN';
+  }
+  return 'FREELANCER';
+}
+
 function createAuthFlowError(code: AuthFlowCode, email: string, message: string): AuthFlowError {
   const error = new Error(message) as AuthFlowError;
   error.code = code;
@@ -64,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUser = useCallback(async () => {
     try {
       const cognitoUser = await getCurrentUser();
-      const session = await fetchAuthSession({ forceRefresh: true });
+      const session = await fetchAuthSession();
       let attrs: Partial<Record<string, string>> = {};
 
       try {
@@ -73,14 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         attrs = {};
       }
 
-      const groups =
-        (session.tokens?.accessToken?.payload['cognito:groups'] as string[]) ?? [];
-
-      const role: UserRole = groups.includes('Admin')
-        ? 'ADMIN'
-        : groups.includes('Freelancer')
-        ? 'FREELANCER'
-        : 'PUBLIC';
+      const accessGroups = normalizeGroups(session.tokens?.accessToken?.payload['cognito:groups']);
+      const idGroups = normalizeGroups(session.tokens?.idToken?.payload['cognito:groups']);
+      const groups = Array.from(new Set([...accessGroups, ...idGroups]));
+      const role = resolveRole(groups);
 
       setUser({
         userId: cognitoUser.userId,

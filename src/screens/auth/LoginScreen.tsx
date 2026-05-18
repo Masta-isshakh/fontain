@@ -51,6 +51,10 @@ export function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
+      const parentNav = navigation.getParent?.();
+      if (parentNav?.canGoBack?.()) {
+        parentNav.goBack();
+      }
     } catch (err: any) {
       const msg = err?.message ?? 'Une erreur est survenue. Veuillez réessayer.';
 

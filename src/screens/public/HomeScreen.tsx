@@ -89,6 +89,18 @@ export function HomeScreen({ navigation }: Props) {
     loadMedia();
   };
 
+  const openLogin = () => {
+    let currentNav: any = navigation;
+    while (currentNav) {
+      const state = currentNav.getState?.();
+      if (state?.routeNames?.includes?.('AuthModal')) {
+        currentNav.navigate('AuthModal', { screen: 'Login' });
+        return;
+      }
+      currentNav = currentNav.getParent?.();
+    }
+  };
+
   if (loading) return <LoadingScreen message="Chargement..." />;
 
   return (
@@ -215,7 +227,7 @@ export function HomeScreen({ navigation }: Props) {
         ) : (
           <TouchableOpacity
             style={styles.quickCard}
-            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+            onPress={openLogin}
             activeOpacity={0.85}
           >
             <View style={[styles.quickIcon, { backgroundColor: Colors.warningBg }]}>

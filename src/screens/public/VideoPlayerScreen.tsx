@@ -85,6 +85,18 @@ export function VideoPlayerScreen({ route, navigation }: Props) {
     }
   };
 
+  const openLogin = () => {
+    let currentNav: any = navigation;
+    while (currentNav) {
+      const state = currentNav.getState?.();
+      if (state?.routeNames?.includes?.('AuthModal')) {
+        currentNav.navigate('AuthModal', { screen: 'Login' });
+        return;
+      }
+      currentNav = currentNav.getParent?.();
+    }
+  };
+
   if (loadingUrl) return <LoadingScreen message="Chargement de la vidéo..." />;
 
   return (
@@ -140,7 +152,7 @@ export function VideoPlayerScreen({ route, navigation }: Props) {
         ) : (
           <TouchableOpacity
             style={styles.loginPrompt}
-            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+            onPress={openLogin}
           >
             <Text style={styles.loginPromptText}>Connectez-vous pour commenter</Text>
           </TouchableOpacity>

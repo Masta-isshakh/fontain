@@ -25,6 +25,13 @@ export function RegisterScreen({ navigation }: Props) {
   const { login } = useAuth();
   const [step, setStep] = useState<'form' | 'verify'>('form');
 
+  const closeAuthModalIfOpen = () => {
+    const parentNav = navigation.getParent?.();
+    if (parentNav?.canGoBack?.()) {
+      parentNav.goBack();
+    }
+  };
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,6 +82,7 @@ export function RegisterScreen({ navigation }: Props) {
 
         if (result.isSignUpComplete) {
           await login(normalizedEmail, password);
+          closeAuthModalIfOpen();
           return;
         }
 
@@ -113,6 +121,7 @@ export function RegisterScreen({ navigation }: Props) {
           confirmationCode: code.trim(),
         });
         await login(email.toLowerCase().trim(), password);
+        closeAuthModalIfOpen();
       } catch (err: any) {
         const msg = err?.message ?? 'Le code est incorrect ou a expire';
         setSubmitError(msg);

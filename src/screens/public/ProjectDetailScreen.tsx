@@ -64,9 +64,21 @@ export function ProjectDetailScreen({ route, navigation }: Props) {
 
   const onRefresh = () => { setRefreshing(true); load(); };
 
+  const openLogin = () => {
+    let currentNav: any = navigation;
+    while (currentNav) {
+      const state = currentNav.getState?.();
+      if (state?.routeNames?.includes?.('AuthModal')) {
+        currentNav.navigate('AuthModal', { screen: 'Login' });
+        return;
+      }
+      currentNav = currentNav.getParent?.();
+    }
+  };
+
   const handleRequestProject = async () => {
     if (!user) {
-      navigation.navigate('Auth', { screen: 'Login' });
+      openLogin();
       return;
     }
     if (!isFreelancer) {
@@ -226,7 +238,7 @@ export function ProjectDetailScreen({ route, navigation }: Props) {
       ) : !user ? (
         <AppButton
           title="Se connecter pour postuler"
-          onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+          onPress={openLogin}
           variant="outline"
           fullWidth
           size="lg"
