@@ -35,9 +35,9 @@ export function RootNavigator() {
 
   // Unauthenticated → show auth + public content accessible
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="PublicRoot" component={FreelancerNavigator} />
+    <Stack.Navigator initialRouteName="AuthModal" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AuthModal" component={AuthNavigator} />
+      <Stack.Screen name="PublicRoot" component={FreelancerNavigator} />
     </Stack.Navigator>
   );
 }

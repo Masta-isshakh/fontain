@@ -194,23 +194,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await withLoading(async () => {
-      try {
-        await signOut();
-      } catch (err: any) {
-        const msg = String(err?.message ?? '').toLowerCase();
-        const isAlreadySignedOut =
-          msg.includes('no current user') ||
-          msg.includes('not authenticated') ||
-          msg.includes('no user is currently signed in');
+    try {
+      await withLoading(async () => {
+        try {
+          await signOut();
+        } catch (err: any) {
+          const msg = String(err?.message ?? '').toLowerCase();
+          const isAlreadySignedOut =
+            msg.includes('no current user') ||
+            msg.includes('not authenticated') ||
+            msg.includes('no user is currently signed in');
 
-        if (!isAlreadySignedOut) {
-          throw err;
+          if (!isAlreadySignedOut) {
+            throw err;
+          }
         }
-      } finally {
-        setUser(null);
-      }
-    }, 'Déconnexion...');
+      }, 'Déconnexion...');
+    } finally {
+      setUser(null);
+    }
   }, [withLoading]);
 
   const forgotPassword = useCallback(

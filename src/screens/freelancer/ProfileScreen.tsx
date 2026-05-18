@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { useAuth } from '../../context/AuthContext';
-import { AppButton, StatusBadge, LoadingScreen } from '../../components';
+import { AppButton, StatusBadge, LoadingScreen, ConfirmDialog } from '../../components';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../theme';
 
 const client = generateClient<Schema>();
@@ -56,6 +57,8 @@ export function ProfileScreen({ navigation }: Props) {
   const [recentAssignments, setRecentAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -86,11 +89,20 @@ export function ProfileScreen({ navigation }: Props) {
 
   const onRefresh = () => { setRefreshing(true); load(); };
 
-  const handleLogout = () => {
-    Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Déconnexion', style: 'destructive', onPress: logout },
-    ]);
+  const doLogout = () => {
+    setIsLoggingOut(true);
+    void logout().then(() => {
+      setShowLogoutConfirm(false);
+    }).catch((err: any) => {
+      const msg = err?.message ?? 'La déconnexion a échoué.';
+      if (Platform.OS === 'web') {
+        window.alert(msg);
+      } else {
+        Alert.alert('Erreur', msg);
+      }
+    }).finally(() => {
+      setIsLoggingOut(false);
+    });
   };
 
   if (!user) {
@@ -138,7 +150,7 @@ export function ProfileScreen({ navigation }: Props) {
         />
         <AppButton
           title="Se déconnecter"
-          onPress={handleLogout}
+          onPress={() => setShowLogoutConfirm(true)}
           variant="outline"
           size="lg"
           fullWidth
@@ -245,11 +257,27 @@ export function ProfileScreen({ navigation }: Props) {
       {/* Logout */}
       <AppButton
         title="Se déconnecter"
-        onPress={handleLogout}
+        onPress={() => setShowLogoutConfirm(true)}
         variant="outline"
         fullWidth
         size="lg"
         icon={<Ionicons name="log-out-outline" size={18} color={Colors.primary} />}
+      />
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        type="danger"
+        title="Se déconnecter ?"
+        message="Vous serez redirigé vers la page de connexion."
+        confirmLabel="Se déconnecter"
+        cancelLabel="Annuler"
+        onConfirm={doLogout}
+        onCancel={() => {
+          if (!isLoggingOut) {
+            setShowLogoutConfirm(false);
+          }
+        }}
+        loading={isLoggingOut}
       />
     </ScrollView>
   );

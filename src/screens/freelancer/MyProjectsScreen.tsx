@@ -98,7 +98,7 @@ export function MyProjectsScreen({ navigation }: Props) {
             }
             icon="briefcase-outline"
             actionLabel="Voir les projets"
-            onAction={() => navigation.navigate('Projects')}
+            onAction={() => navigation.navigate('ProjectsTab')}
           />
         }
         renderItem={({ item }) => (
